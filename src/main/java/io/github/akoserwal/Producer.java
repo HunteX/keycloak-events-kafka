@@ -9,7 +9,7 @@ import java.util.Properties;
 
 public class Producer {
 
-	private final static String BOOTSTRAP_SERVER = "node02.htxd.ru:32292";
+	private final static String BOOTSTRAP_SERVER = "node02.htxd.ru:32291";
 
 	public static void publishEvent(String topic, String value){
 		//reset thread context
