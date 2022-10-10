@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.jboss.logging.Logger;
+import org.keycloak.events.admin.OperationType;
+import org.keycloak.events.admin.ResourceType;
 
 public class KeycloakCustomEventListener implements EventListenerProvider {
     ObjectMapper eventMapper = new ObjectMapper();
@@ -28,10 +30,15 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
         //		Properties properties = kafkaConfig.getProperties();
         // String topicName = properties.getProperty(KafkaEventListenerConfig.KAFKA_CONFIG_TOPIC_NAME_ADMIN);
 
-        ObjectMapper eventMapper = new ObjectMapper();
-        JsonNode eventJson = eventMapper.convertValue(adminEvent, JsonNode.class);
+        ResourceType resourceType = adminEvent.getResourceType();
+        OperationType operationType = adminEvent.getOperationType();
 
-        Producer.publishEvent("KEYCLOAK", eventJson.toString());
+        if (resourceType == ResourceType.USER && operationType == OperationType.CREATE) {
+            ObjectMapper eventMapper = new ObjectMapper();
+            JsonNode eventJson = eventMapper.convertValue(adminEvent.getRepresentation(), JsonNode.class);
+
+            Producer.publishEvent("KEYCLOAK", eventJson.toString());
+        }
     }
 
     @Override
