@@ -1,5 +1,7 @@
 package io.github.akoserwal;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.kafka.common.protocol.types.Field;
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.admin.AdminEvent;
@@ -11,7 +13,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 
+import java.util.Map;
+
 public class KeycloakCustomEventListener implements EventListenerProvider {
+    public class Representation {
+        private String username;
+        private String firstname;
+        private String lastname;
+        private String email;
+    }
+
     private class CreateUserData {
         public String UserId;
         public String Username;
@@ -39,18 +50,21 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
             return;
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode node = mapper.convertValue(adminEvent.getRepresentation().replace("\\", ""), JsonNode.class);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Representation rep = mapper.readValue(adminEvent.getRepresentation(), Representation.class);
+            CreateUserData data = new CreateUserData();
 
-        CreateUserData data = new CreateUserData();
+            data.UserId = adminEvent.getResourcePath().replace("users/", "");
+            data.Username = rep.username;
+            data.Firstname = rep.firstname;
+            data.Lastname = rep.lastname;
+            data.Email = rep.email;
 
-        data.UserId = adminEvent.getResourcePath().replace("users/", "");
-        data.Username = node.get("username").toString();
-        data.Firstname = node.get("firstName").toString();
-        data.Lastname = node.get("lastName").toString();
-        data.Email = node.get("email").toString();
-
-        SerializeAndSend(data);
+            SerializeAndSend(data);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void SerializeAndSend(CreateUserData data) {
