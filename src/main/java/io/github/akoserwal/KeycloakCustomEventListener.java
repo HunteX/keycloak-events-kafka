@@ -1,5 +1,7 @@
 package io.github.akoserwal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
@@ -13,14 +15,23 @@ import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 
 public class KeycloakCustomEventListener implements EventListenerProvider {
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static class Representation {
         public Representation() {
         }
 
-        private String username;
-        private String firstname;
-        private String lastname;
-        private String email;
+        @JsonProperty("username")
+        public String Username;
+
+        @JsonProperty("firstName")
+        public String FirstName;
+
+        @JsonProperty("lastName")
+        public String LastName;
+
+        @JsonProperty("email")
+        public String Email;
     }
 
     private class CreateUserData {
@@ -56,10 +67,10 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
             CreateUserData data = new CreateUserData();
 
             data.UserId = adminEvent.getResourcePath().replace("users/", "");
-            data.Username = rep.username;
-            data.Firstname = rep.firstname;
-            data.Lastname = rep.lastname;
-            data.Email = rep.email;
+            data.Username = rep.Username;
+            data.Firstname = rep.FirstName;
+            data.Lastname = rep.LastName;
+            data.Email = rep.Email;
 
             SerializeAndSend(data);
         } catch (JsonProcessingException e) {
