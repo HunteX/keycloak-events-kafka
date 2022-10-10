@@ -1,7 +1,6 @@
 package io.github.akoserwal;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.kafka.common.protocol.types.Field;
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.admin.AdminEvent;
@@ -13,10 +12,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 
-import java.util.Map;
-
 public class KeycloakCustomEventListener implements EventListenerProvider {
-    public class Representation {
+    private static class Representation {
+        public Representation() {
+        }
+
         private String username;
         private String firstname;
         private String lastname;
