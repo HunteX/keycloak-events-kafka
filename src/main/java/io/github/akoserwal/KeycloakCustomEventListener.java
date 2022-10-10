@@ -7,18 +7,20 @@ import org.keycloak.events.admin.AdminEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.jboss.logging.Logger;
+//import org.jboss.logging.Logger;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 
 public class KeycloakCustomEventListener implements EventListenerProvider {
-    ObjectMapper eventMapper = new ObjectMapper();
-
-    private static Logger logger = Logger.getLogger(KeycloakCustomEventListener.class);
-
-    public KeycloakCustomEventListener() {
-
+    private class CreateUserData {
+        public String UserId;
+        public String Username;
+        public String Firstname;
+        public String Lastname;
+        public String Email;
     }
+
+//    private static Logger logger = Logger.getLogger(KeycloakCustomEventListener.class);
 
     @Override
     public void onEvent(AdminEvent adminEvent, boolean includeRepresentation) {
@@ -33,12 +35,30 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
         ResourceType resourceType = adminEvent.getResourceType();
         OperationType operationType = adminEvent.getOperationType();
 
-        if (resourceType == ResourceType.USER && operationType == OperationType.CREATE) {
-            ObjectMapper eventMapper = new ObjectMapper();
-            JsonNode eventJson = eventMapper.convertValue(adminEvent.getRepresentation(), JsonNode.class);
-
-            Producer.publishEvent("KEYCLOAK", eventJson.toString());
+        if (!(resourceType == ResourceType.USER && operationType == OperationType.CREATE)) {
+            return;
         }
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.convertValue(adminEvent.getRepresentation().replace("\\", ""), JsonNode.class);
+
+        CreateUserData data = new CreateUserData();
+
+        data.UserId = adminEvent.getResourcePath().replace("users/", "");
+        data.Username = node.get("username").toString();
+        data.Firstname = node.get("firstName").toString();
+        data.Lastname = node.get("lastName").toString();
+        data.Email = node.get("email").toString();
+
+        SerializeAndSend(data);
+    }
+
+    private void SerializeAndSend(CreateUserData data) {
+        ObjectMapper eventMapper = new ObjectMapper();
+
+        JsonNode eventJson = eventMapper.convertValue(data, JsonNode.class);
+
+        Producer.publishEvent("KEYCLOAK", eventJson.toString());
     }
 
     @Override
