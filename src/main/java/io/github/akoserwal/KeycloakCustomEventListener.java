@@ -83,7 +83,7 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
 
         JsonNode eventJson = eventMapper.convertValue(data, JsonNode.class);
 
-        Producer.publishEvent("KEYCLOAK-ADD-USER", eventJson.toString());
+        Producer.publishEvent("keycloak-user-add", eventJson.toString());
     }
 
     @Override
