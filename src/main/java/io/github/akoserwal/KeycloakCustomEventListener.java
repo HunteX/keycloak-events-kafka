@@ -34,15 +34,40 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
         public String Email;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private class AddUserRoleRepresentation {
+        public AddUserRoleRepresentation() {
+        }
+
+        @JsonProperty("name")
+        public String Role;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private class RemoveUserRoleRepresentation {
+        public RemoveUserRoleRepresentation() {
+        }
+
+        @JsonProperty("name")
+        public String Role;
+    }
+
     private class CreateUserData {
         public String UserId;
         public String Username;
         public String Firstname;
         public String Lastname;
         public String Email;
-        public Boolean IsAdmin;
-        public Boolean IsManager;
-        public Boolean IsUser;
+    }
+
+    private class AddUserRole {
+        public String UserId;
+        public String Role;
+    }
+
+    private class RemoveUserRole {
+        public String UserId;
+        public String Role;
     }
 
 //    private static Logger logger = Logger.getLogger(KeycloakCustomEventListener.class);
@@ -60,17 +85,61 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
         ResourceType resourceType = adminEvent.getResourceType();
         OperationType operationType = adminEvent.getOperationType();
 
-        System.out.println("EVENT-op-type::: " + adminEvent.getOperationType());
-        System.out.println("EVENT-re-type::: " + adminEvent.getResourceTypeAsString());
-        System.out.println("EVENT-cl-id::: " + adminEvent.getAuthDetails().getClientId());
-        System.out.println("EVENT-us-id::: " + adminEvent.getAuthDetails().getUserId());
-        System.out.println("EVENT-re-path::: " + adminEvent.getResourcePath());
-        System.out.println("EVENT::: " + adminEvent.getRepresentation());
+//        System.out.println("EVENT-op-type::: " + adminEvent.getOperationType());
+//        System.out.println("EVENT-re-type::: " + adminEvent.getResourceTypeAsString());
+//        System.out.println("EVENT-cl-id::: " + adminEvent.getAuthDetails().getClientId());
+//        System.out.println("EVENT-us-id::: " + adminEvent.getAuthDetails().getUserId());
+//        System.out.println("EVENT-re-path::: " + adminEvent.getResourcePath());
+//        System.out.println("EVENT::: " + adminEvent.getRepresentation());
 
-        if (!(resourceType == ResourceType.USER && operationType == OperationType.CREATE)) {
-            return;
+        if (resourceType == ResourceType.USER && operationType == OperationType.CREATE) {
+            SendCreateUserData(adminEvent);
         }
 
+        if (resourceType == ResourceType.CLIENT_ROLE_MAPPING && operationType == OperationType.CREATE) {
+            SendAddUserRole(adminEvent);
+        }
+
+        if (resourceType == ResourceType.CLIENT_ROLE_MAPPING && operationType == OperationType.DELETE) {
+            SendRemoveUserRole(adminEvent);
+        }
+    }
+
+    private void SendAddUserRole(AdminEvent adminEvent) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            AddUserRoleRepresentation rep = mapper.readValue(adminEvent.getRepresentation(), AddUserRoleRepresentation.class);
+            AddUserRole data = new AddUserRole();
+
+            data.UserId = adminEvent
+                    .getResourcePath()
+                    .substring("users/".length() - 1, adminEvent.getResourcePath().indexOf("/role"));
+            data.Role = rep.Role;
+
+            SerializeAndSend(data, "keycloak-user-add-role");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void SendRemoveUserRole(AdminEvent adminEvent) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            RemoveUserRoleRepresentation rep = mapper.readValue(adminEvent.getRepresentation(), RemoveUserRoleRepresentation.class);
+            RemoveUserRole data = new RemoveUserRole();
+
+            data.UserId = adminEvent
+                    .getResourcePath()
+                    .substring("users/".length() - 1, adminEvent.getResourcePath().indexOf("/role"));
+            data.Role = rep.Role;
+
+            SerializeAndSend(data, "keycloak-user-remove-role");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void SendCreateUserData(AdminEvent adminEvent) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             Representation rep = mapper.readValue(adminEvent.getRepresentation(), Representation.class);
@@ -82,18 +151,18 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
             data.Lastname = rep.LastName;
             data.Email = rep.Email;
 
-            SerializeAndSend(data);
+            SerializeAndSend(data, "keycloak-user-add");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void SerializeAndSend(CreateUserData data) {
+    private void SerializeAndSend(Object data, String topic) {
         ObjectMapper eventMapper = new ObjectMapper();
 
         JsonNode eventJson = eventMapper.convertValue(data, JsonNode.class);
 
-        Producer.publishEvent("keycloak-user-add", eventJson.toString());
+        Producer.publishEvent(topic, eventJson.toString());
     }
 
     @Override
