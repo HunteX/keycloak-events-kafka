@@ -40,6 +40,9 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
         public String Firstname;
         public String Lastname;
         public String Email;
+        public Boolean IsAdmin;
+        public Boolean IsManager;
+        public Boolean IsUser;
     }
 
 //    private static Logger logger = Logger.getLogger(KeycloakCustomEventListener.class);
@@ -60,6 +63,8 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
         if (!(resourceType == ResourceType.USER && operationType == OperationType.CREATE)) {
             return;
         }
+
+        System.out.println("EVENT::: " + adminEvent.getRepresentation());
 
         try {
             ObjectMapper mapper = new ObjectMapper();
