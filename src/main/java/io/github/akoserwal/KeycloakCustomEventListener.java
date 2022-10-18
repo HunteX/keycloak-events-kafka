@@ -92,6 +92,8 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
 //        System.out.println("EVENT-re-path::: " + adminEvent.getResourcePath());
 //        System.out.println("EVENT::: " + adminEvent.getRepresentation());
 
+        System.out.println("VERSION ------- " + "1.0" + " -------");
+
         if (resourceType == ResourceType.USER && operationType == OperationType.CREATE) {
             SendCreateUserData(adminEvent);
         }
@@ -117,7 +119,7 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
 
             data.UserId = adminEvent
                     .getResourcePath()
-                    .substring("users/".length() - 1, adminEvent.getResourcePath().indexOf("/role"));
+                    .substring("users/".length(), adminEvent.getResourcePath().indexOf("/role"));
             data.Role = rep.Role;
 
             SerializeAndSend(data, "keycloak-user-add-role");
@@ -138,7 +140,7 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
 
             data.UserId = adminEvent
                     .getResourcePath()
-                    .substring("users/".length() - 1, adminEvent.getResourcePath().indexOf("/role"));
+                    .substring("users/".length(), adminEvent.getResourcePath().indexOf("/role"));
             data.Role = rep.Role;
 
             SerializeAndSend(data, "keycloak-user-remove-role");
