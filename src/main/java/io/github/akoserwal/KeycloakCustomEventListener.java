@@ -60,6 +60,7 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
         ResourceType resourceType = adminEvent.getResourceType();
         OperationType operationType = adminEvent.getOperationType();
 
+        System.out.println("EVENT-details::: " + adminEvent.getAuthDetails().toString());
         System.out.println("EVENT::: " + adminEvent.getRepresentation());
 
         if (!(resourceType == ResourceType.USER && operationType == OperationType.CREATE)) {
