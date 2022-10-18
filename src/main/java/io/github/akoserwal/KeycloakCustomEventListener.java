@@ -35,7 +35,7 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private class AddUserRoleRepresentation {
+    private static class AddUserRoleRepresentation {
         public AddUserRoleRepresentation() {
         }
 
@@ -44,7 +44,7 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private class RemoveUserRoleRepresentation {
+    private static class RemoveUserRoleRepresentation {
         public RemoveUserRoleRepresentation() {
         }
 
