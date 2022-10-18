@@ -108,7 +108,11 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
     private void SendAddUserRole(AdminEvent adminEvent) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            AddUserRoleRepresentation rep = mapper.readValue(adminEvent.getRepresentation(), AddUserRoleRepresentation.class);
+            AddUserRoleRepresentation rep = mapper.readValue(adminEvent.getRepresentation()
+                            .replace("[", "")
+                            .replace("]", ""),
+                    AddUserRoleRepresentation.class
+            );
             AddUserRole data = new AddUserRole();
 
             data.UserId = adminEvent
@@ -125,7 +129,11 @@ public class KeycloakCustomEventListener implements EventListenerProvider {
     private void SendRemoveUserRole(AdminEvent adminEvent) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            RemoveUserRoleRepresentation rep = mapper.readValue(adminEvent.getRepresentation(), RemoveUserRoleRepresentation.class);
+            RemoveUserRoleRepresentation rep = mapper.readValue(
+                    adminEvent.getRepresentation()
+                            .replace("[", "")
+                            .replace("]", ""),
+                    RemoveUserRoleRepresentation.class);
             RemoveUserRole data = new RemoveUserRole();
 
             data.UserId = adminEvent
